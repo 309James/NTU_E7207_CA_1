@@ -1,4 +1,5 @@
-clc;clear;
+clc;
+% clear;
 
 % % % %load data files
 load('data_train.mat');
@@ -21,7 +22,7 @@ iteration_limit=0.1;
 feature_num=33;
 train_num=330;
 test_num=21;
-center_num=280;
+center_num=290;
 center=[];
 delta=0.707*ones(1,center_num);
 weights=[];
@@ -75,7 +76,7 @@ end
 %         flag=1;
 %     end
 % end
-%     disp("Center ditermined!");
+disp("Center ditermined!");
 Theta=[];
 
 for i=1:train_num
@@ -86,7 +87,7 @@ for i=1:train_num
 end
 
 weights=inv(Theta'*Theta)*Theta'*label_train;
-%     disp("Weight Determined!");
+disp("Weight Determined!");
 
 y_train=[];
 m_sum=[];
@@ -103,7 +104,7 @@ for i=1:train_num
         y_train(i)=-1;
     end
 end
-
+y_train=y_train';
 correct=0;
 for i=1:train_num
     if label_train(i)==y_train(i)
@@ -125,5 +126,5 @@ for i=1:test_num
         label_test(i)=-1;
     end
 end
-
+label_test=label_test';
 
