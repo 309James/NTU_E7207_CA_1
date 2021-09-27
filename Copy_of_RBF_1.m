@@ -1,23 +1,32 @@
-clc;clear;
+clc;
+clear;
+
 % % % %load data files
 load('data_train.mat');
 load('data_test.mat');
 load('label_train.mat');
 disp("Data Loaded!");
+% Train an RBF neural network classifier using Gaussian basis function
+% data_train=transpose(data_train);
+% data_test=transpose(data_test);
+% label_train=transpose(label_train);
+% 
+% net=newrbe(data_train,label_train);
+% 
+% label_train2=sim(net,data_train);
+% 
+% label_test=sim(net,data_test);
 
 % initial
+iteration_limit=0.1;
 feature_num=33;
 train_num=330;
 test_num=21;
-center_num=81;
+center_num=80;
 center=[];
 weights=[];
+idx=kmeans(data_train,center_num);
 class=[];
-%SOM
-net=selforgmap([9 9]);
-net=train(net,data_train');
-idx2=net(data_train');
-idx=vec2ind(idx2);
 
 for i=1:center_num
     class{i}=[];
@@ -38,15 +47,49 @@ for i=1:center_num
 end
 sigma=d_max/(2*center_num)^0.5*ones(1,center_num);
 
+flag=0;
+iter=0;
+while(~flag)
+    iter=iter+1;
+    class=[];
+    for i=1:center_num
+        class{i}=[];
+    end
+    for i=1:train_num
+        gap=100;
+        for j=1:center_num
+            distance=norm(data_train(i,:)-center(j,:));
+            if distance<gap
+                belong=j;
+                gap=distance;
+            end
+        end
+        class{belong}=[class{belong};data_train(i,:)];
+    end
+    for i=1:center_num
+%         BUG-当只有一个点为一类时，求和变成了行求和
+        new_center(i,:)=sum(class{i},1)/size(class{i},1);
+        sum1(i)=norm(new_center(i,:)-center(i,:));
+    end
+    if sum(sum1)>iteration_limit
+        flag=0;
+        center=new_center;
+    else
+        flag=1;
+    end
+end
+disp("Center ditermined!");
 Theta=[];
+
 for i=1:train_num
     for j=1:center_num
         p=norm(data_train(i,:)-center(j,:));
         Theta(i,j)=exp(-p^2/(2*sigma(j)^2));
     end
 end
-Theta(:,center_num+1)=1;
+
 weights=inv(Theta'*Theta)*Theta'*label_train;
+disp("Weight Determined!");
 
 y_train=[];
 m_sum=[];
@@ -56,7 +99,7 @@ for i=1:train_num
         m(j)=exp(-norm(data_train(i,:)-center(j,:))/(2*sigma(j)^2));
         m(j)=m(j)*weights(j);
     end
-    m_sum(i)=sum(m)+weights(center_num+1);
+    m_sum(i)=sum(m);
     if sum(m)>0
         y_train(i)=1;
     else
