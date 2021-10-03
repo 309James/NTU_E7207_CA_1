@@ -4,20 +4,29 @@ load('data_train.mat');
 load('data_test.mat');
 load('label_train.mat');
 disp("Data Loaded!");
+dt=[];
+lt=[];
+indexi=randperm(330);
+for i=1:330
+    dt(i,:)=data_train(indexi(i),:);
+    lt(i,:)=label_train(indexi(i),:);
+end
+data_train=dt;
+label_train=lt;
 
 % initial
 feature_num=33;
 train_num=260;
 test_num=21;
-center_num=90;
+center_num=80;
 center=[];
 weights=[];
 class=[];
 
 %SOM find center neurons
-net=selforgmap([9 10]);
-net=train(net,data_train');
-idx2=net(data_train');
+net=selforgmap([8 10]);
+net=train(net,data_train(1:train_num,:)');
+idx2=net(data_train(1:train_num,:)');
 idx=vec2ind(idx2);
 
 for i=1:center_num
@@ -47,7 +56,7 @@ for i=1:train_num
         Theta(i,j)=exp(-p^2/(2*sigma(j)^2));
     end
 end
-Theta(:,center_num+1)=1;
+Theta(:,center_num)=1;
 weights=inv(Theta'*Theta)*Theta'*label_train(1:260);
 
 % test performance on training data
@@ -59,7 +68,7 @@ for i=1:70
         m(j)=exp(-norm(data_train(260+i,:)-center(j,:))/(2*sigma(j)^2));
         m(j)=m(j)*weights(j);
     end
-    m_sum(i)=sum(m)+weights(center_num+1);
+%     m_sum(i)=sum(m)+weights(center_num+1);
     if sum(m)>0
         y_train(i)=1;
     else
@@ -77,12 +86,14 @@ accuracy=correct/70;
 
 % give labels of test data
 label_test=[];
+m_sum=[];
 for i=1:test_num
     m1=[];
     for j=1:center_num
         m1(j)=exp(-norm(data_test(i,:)-center(j,:))/(2*sigma(j)^2));
         m1(j)=m1(j)*weights(j);
     end
+    
     if sum(m1)>0
         label_test(i)=1;
     else

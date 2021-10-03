@@ -4,6 +4,16 @@ load('data_train.mat');
 load('data_test.mat');
 load('label_train.mat');
 disp("Data Loaded!");
+dt=[];
+lt=[];
+indexi=randperm(330);
+for i=1:330
+    dt(i,:)=data_train(indexi(i),:);
+    lt(i,:)=label_train(indexi(i),:);
+end
+data_train=dt;
+label_train=lt;
+
 X=data_train;
 Y=label_train;
 
@@ -20,4 +30,4 @@ for i=1:70
 end
 accuracy=count/70;
 % give the labels of test data
-[Y2,~]=predict(model,data_test);
+[label_test,~]=predict(model,data_test);
